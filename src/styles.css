@@ -407,6 +407,10 @@ select {
   animation: spin 750ms linear infinite;
 }
 
+.lucide--spin {
+  animation: spin 900ms linear infinite;
+}
+
 .file-text {
   min-width: 0;
   flex: 1;

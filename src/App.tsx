@@ -1,6 +1,7 @@
 import { useState } from "react";
 // 正确引入类型
 import type { FC, DragEvent, ChangeEvent } from "react";
+import { AlertCircle, Check, File, Loader2, Upload, X } from "lucide-react";
 import * as XLSX from "xlsx";
 
 type ExcelValue = string | number | boolean | null | undefined;
@@ -288,22 +289,7 @@ const App: FC = () => {
             onClick={() => document.getElementById("fileInput")?.click()}
           >
             <div className="dropzone__icon" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 3v10m0 0 3.5-3.5M12 13 8.5 9.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M7 14.5v3.2c0 .7.6 1.3 1.3 1.3h7.4c.7 0 1.3-.6 1.3-1.3v-3.2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Upload size={18} strokeWidth={1.6} />
             </div>
 
             <h3 className="dropzone__title">
@@ -353,52 +339,15 @@ const App: FC = () => {
                       <div className="file-main">
                         <div className="file-leading" aria-hidden="true">
                           {fws.status === "pending" ? (
-                            <span className="spinner" />
+                            <Loader2
+                              className="lucide--spin"
+                              size={16}
+                              strokeWidth={1.6}
+                            />
                           ) : fws.status === "error" ? (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12 9v4"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                              />
-                              <path
-                                d="M12 16.5h.01"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                              />
-                              <path
-                                d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                              />
-                            </svg>
+                            <AlertCircle size={16} strokeWidth={1.6} />
                           ) : (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M7 3.5h7l3 3v14a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 6 20.5V5A1.5 1.5 0 0 1 7.5 3.5Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M14 3.5V7h3"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                            <File size={16} strokeWidth={1.6} />
                           )}
                         </div>
 
@@ -413,19 +362,11 @@ const App: FC = () => {
                               {fws.file.name}
                             </span>
                             {fws.status === "success" && (
-                              <svg
+                              <Check
                                 className="check"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20 6 9 17l-5-5"
-                                  stroke="currentColor"
-                                  strokeWidth="1.8"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
+                                size={14}
+                                strokeWidth={2}
+                              />
                             )}
                           </div>
                           <div className="file-meta">
@@ -462,19 +403,7 @@ const App: FC = () => {
                           aria-label="移除文件"
                           type="button"
                         >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M18 6 6 18M6 6l12 12"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                            />
-                          </svg>
+                          <X size={16} strokeWidth={1.8} />
                         </button>
                       </div>
                     </div>
@@ -492,52 +421,15 @@ const App: FC = () => {
                       <div className="file-main">
                         <div className="file-leading" aria-hidden="true">
                           {fws.status === "pending" ? (
-                            <span className="spinner" />
+                            <Loader2
+                              className="lucide--spin"
+                              size={16}
+                              strokeWidth={1.6}
+                            />
                           ) : fws.status === "error" ? (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M12 9v4"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                              />
-                              <path
-                                d="M12 16.5h.01"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                              />
-                              <path
-                                d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                              />
-                            </svg>
+                            <AlertCircle size={16} strokeWidth={1.6} />
                           ) : (
-                            <svg
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                            >
-                              <path
-                                d="M7 3.5h7l3 3v14a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 6 20.5V5A1.5 1.5 0 0 1 7.5 3.5Z"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinejoin="round"
-                              />
-                              <path
-                                d="M14 3.5V7h3"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                            <File size={16} strokeWidth={1.6} />
                           )}
                         </div>
 
@@ -552,19 +444,11 @@ const App: FC = () => {
                               {fws.file.name}
                             </span>
                             {fws.status === "success" && (
-                              <svg
+                              <Check
                                 className="check"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M20 6 9 17l-5-5"
-                                  stroke="currentColor"
-                                  strokeWidth="1.8"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
+                                size={14}
+                                strokeWidth={2}
+                              />
                             )}
                           </div>
                           <div className="file-meta">
@@ -601,19 +485,7 @@ const App: FC = () => {
                           aria-label="移除文件"
                           type="button"
                         >
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M18 6 6 18M6 6l12 12"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                            />
-                          </svg>
+                          <X size={16} strokeWidth={1.8} />
                         </button>
                       </div>
                     </div>
