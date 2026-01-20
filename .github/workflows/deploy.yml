@@ -1,0 +1,22 @@
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main] # 只有推送到 main 分支时触发
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run build # 确保这一步生成 dist 文件夹
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist' # 这里的路径要和打包输出目录一致
+      - uses: actions/deploy-pages@v4
