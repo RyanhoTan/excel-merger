@@ -1,3 +1,5 @@
+/* src/styles.css */
+
 :root {
   --canvas: #fbfbfb;
   --panel: #ffffff;
@@ -581,6 +583,80 @@ select {
   width: 14px;
   height: 14px;
   color: rgba(22, 163, 74, 0.85);
+}
+
+.preview {
+  margin-top: 18px;
+}
+
+.preview__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 10px;
+}
+
+.preview__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.1px;
+}
+
+.preview__hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.preview__surface {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.preview__empty {
+  padding: 22px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.table-wrap {
+  width: 100%;
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+}
+
+.table thead th {
+  text-align: left;
+  font-weight: 650;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 10px 12px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.table tbody tr:hover td {
+  background: #fafafa;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 @keyframes breathe {
