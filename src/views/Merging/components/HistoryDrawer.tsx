@@ -5,6 +5,9 @@ import { Download, Eye, History, RefreshCcw, Trash2, X } from "lucide-react";
 
 import type { MergeHistoryRecord } from "../../../db/index";
 
+import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import styles from "./HistoryDrawer.module.css";
+
 export interface HistoryDrawerProps {
   // Whether the history drawer is visible on the Merging page.
   open: boolean;
@@ -45,7 +48,7 @@ const HistoryDrawer: FC<HistoryDrawerProps> = ({
 
   return (
     <div
-      className="drawer-overlay"
+      className={styles.drawerOverlay}
       role="dialog"
       aria-modal="true"
       aria-label="合并历史记录"
@@ -53,16 +56,16 @@ const HistoryDrawer: FC<HistoryDrawerProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <aside className="drawer" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="drawer__header">
-          <div className="drawer__title">
+      <aside className={styles.drawer} onMouseDown={(e) => e.stopPropagation()}>
+        <div className={styles.drawerHeader}>
+          <div className={styles.drawerTitle}>
             <History size={16} />
             <span>历史记录</span>
           </div>
 
-          <div className="drawer__header-actions">
+          <div className={styles.drawerHeaderActions}>
             <button
-              className="icon-button"
+              className={iconButtonStyles.iconButton}
               type="button"
               onClick={onRefresh}
               aria-label="刷新"
@@ -71,7 +74,7 @@ const HistoryDrawer: FC<HistoryDrawerProps> = ({
               <RefreshCcw size={16} />
             </button>
             <button
-              className="icon-button"
+              className={iconButtonStyles.iconButton}
               type="button"
               onClick={onClose}
               aria-label="关闭"
@@ -82,28 +85,31 @@ const HistoryDrawer: FC<HistoryDrawerProps> = ({
           </div>
         </div>
 
-        <div className="drawer__body">
+        <div className={styles.drawerBody}>
           {loading ? (
-            <div className="drawer__empty">加载中…</div>
+            <div className={styles.drawerEmpty}>加载中…</div>
           ) : items.length === 0 ? (
-            <div className="drawer__empty">暂无历史记录</div>
+            <div className={styles.drawerEmpty}>暂无历史记录</div>
           ) : (
-            <div className="history-list">
+            <div className={styles.historyList}>
               {items.map((item) => (
-                <div key={item.id ?? item.timestamp} className="history-item">
-                  <div className="history-item__meta">
-                    <div className="history-item__time">
+                <div
+                  key={item.id ?? item.timestamp}
+                  className={styles.historyItem}
+                >
+                  <div className={styles.historyItemMeta}>
+                    <div className={styles.historyItemTime}>
                       {formatDateTime(item.timestamp)}
                     </div>
-                    <div className="history-item__sub">
+                    <div className={styles.historyItemSub}>
                       {item.fileCount} 个文件 · {item.studentCount} 名学生 ·{" "}
                       {item.operator || "老师"}
                     </div>
                   </div>
 
-                  <div className="history-item__actions">
+                  <div className={styles.historyItemActions}>
                     <button
-                      className="icon-button"
+                      className={iconButtonStyles.iconButton}
                       type="button"
                       onClick={() => onPreview(item)}
                       aria-label="预览"
@@ -113,7 +119,7 @@ const HistoryDrawer: FC<HistoryDrawerProps> = ({
                     </button>
 
                     <button
-                      className="icon-button"
+                      className={iconButtonStyles.iconButton}
                       type="button"
                       onClick={() => onRedownload(item)}
                       aria-label="重新下载"
@@ -123,7 +129,7 @@ const HistoryDrawer: FC<HistoryDrawerProps> = ({
                     </button>
 
                     <button
-                      className="icon-button icon-button--danger"
+                      className={`${iconButtonStyles.iconButton} ${iconButtonStyles.iconButtonDanger}`}
                       type="button"
                       onClick={() => {
                         if (!item.id) return;

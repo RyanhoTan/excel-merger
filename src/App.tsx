@@ -8,6 +8,8 @@ import DashboardPage from "./views/Dashboard/index";
 import MergingPage from "./views/Merging";
 import StudentsPage from "./views/Students";
 
+import typographyStyles from "./components/ui/Typography.module.css";
+
 const App: FC = () => {
   const getRouteFromHash = useCallback((): RouteKey => {
     const raw = window.location.hash.replace("#", "");
@@ -46,8 +48,8 @@ const App: FC = () => {
 
     return (
       <div>
-        <h1 className="page-title">AI评语</h1>
-        <p className="page-subtitle">Coming Soon</p>
+        <h1 className={typographyStyles.pageTitle}>AI评语</h1>
+        <p className={typographyStyles.pageSubtitle}>Coming Soon</p>
       </div>
     );
   }, [navigate, route]);

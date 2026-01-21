@@ -1,0 +1,33 @@
+/* src/components/ui/IconButton.module.css (Shared: Icon button styles) */
+
+.iconButton {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 140ms var(--ease),
+    border-color 140ms var(--ease),
+    transform 120ms var(--ease);
+}
+
+.iconButton:hover {
+  background: #f4f4f5;
+  border-color: rgba(24, 24, 27, 0.06);
+}
+
+.iconButton:active {
+  transform: scale(0.98);
+}
+
+.iconButtonDanger:hover {
+  background: #fee2e2;
+  color: var(--danger);
+  border-color: rgba(220, 38, 38, 0.12);
+}

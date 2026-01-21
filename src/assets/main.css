@@ -1,0 +1,58 @@
+/* src/assets/main.css */
+
+:root {
+  --canvas: #fbfbfb;
+  --panel: #ffffff;
+  --panel-translucent: rgba(255, 255, 255, 0.72);
+  --border: #e5e5e5;
+  --border-subtle: #f1f1f1;
+
+  --text: #18181b;
+  --text-strong: #09090b;
+  --muted: #71717a;
+  --muted-2: #a1a1aa;
+
+  --blue: #0052ff;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --danger-tint: #fef2f2;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 10px;
+
+  --shadow-float: 0 10px 30px rgba(9, 9, 11, 0.08);
+  --shadow-cta: 0 14px 30px rgba(9, 9, 11, 0.16);
+  --shadow-md: 0 10px 30px rgba(9, 9, 11, 0.08);
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Display", "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings:
+    "tnum" 1,
+    "ss01" 1;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}

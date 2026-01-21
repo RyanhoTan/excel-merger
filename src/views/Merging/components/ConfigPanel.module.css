@@ -1,0 +1,140 @@
+/* src/views/Merging/components/ConfigPanel.module.css (Merging: ConfigPanel) */
+
+.sectionTitle {
+  margin: 18px 0 10px;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.panel + .panel {
+  margin-top: 12px;
+}
+
+.panelActive {
+  position: relative;
+}
+
+.panelActive::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--blue);
+  border-radius: 2px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.panelTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: -0.1px;
+}
+
+.panelActive .panelTitle {
+  color: var(--text);
+}
+
+.panelBody {
+  margin-top: 12px;
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  outline: none;
+  transition:
+    background 140ms var(--ease),
+    transform 120ms var(--ease),
+    border-color 140ms var(--ease);
+}
+
+.select:hover {
+  background: #f7f7f7;
+}
+
+.select:active {
+  transform: scale(0.99);
+}
+
+.select:focus-visible {
+  border-color: rgba(0, 82, 255, 0.45);
+  box-shadow: 0 0 0 4px rgba(0, 82, 255, 0.08);
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.toggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggleTrack {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #f4f4f5;
+  position: relative;
+  transition:
+    background 180ms var(--ease),
+    border-color 180ms var(--ease);
+}
+
+.toggleTrack::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid rgba(24, 24, 27, 0.06);
+  transition: transform 180ms var(--ease);
+}
+
+.toggleInput:checked + .toggleTrack {
+  background: var(--blue);
+  border-color: rgba(0, 82, 255, 0.35);
+}
+
+.toggleInput:checked + .toggleTrack::after {
+  transform: translateX(16px);
+}

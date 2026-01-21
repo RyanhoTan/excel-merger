@@ -4,6 +4,8 @@ import { Upload } from "lucide-react";
 import type { ChangeEvent, DragEvent, FC } from "react";
 import { useRef } from "react";
 
+import styles from "./Dropzone.module.css";
+
 export interface DropzoneProps {
   filesCount: number;
   isDragging: boolean;
@@ -42,25 +44,25 @@ const Dropzone: FC<DropzoneProps> = ({
 
   return (
     <div
-      className={`dropzone ${filesCount > 0 ? "dropzone--compact" : ""}`}
+      className={`${styles.dropzone} ${filesCount > 0 ? styles.dropzoneCompact : ""}`}
       data-dragging={isDragging}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
     >
-      <div className="dropzone__icon" aria-hidden="true">
+      <div className={styles.dropzoneIcon} aria-hidden="true">
         <Upload size={18} strokeWidth={1.6} />
       </div>
 
-      <h3 className="dropzone__title">
+      <h3 className={styles.dropzoneTitle}>
         {isDragging
           ? "释放以上传文件"
           : filesCount > 0
             ? "继续添加文件"
             : "拖拽文件至此"}
       </h3>
-      <p className="dropzone__hint">
+      <p className={styles.dropzoneHint}>
         {filesCount === 0 ? "支持 .xlsx 和 .xls 格式" : "点击或拖拽以继续添加"}
       </p>
 

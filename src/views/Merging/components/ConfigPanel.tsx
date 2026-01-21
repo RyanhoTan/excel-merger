@@ -2,6 +2,8 @@
 
 import type { FC, ReactNode } from "react";
 
+import styles from "./ConfigPanel.module.css";
+
 export interface ConfigPanelProps {
   // Optional action area rendered at the top-right of the panel header.
   headerAction?: ReactNode;
@@ -44,31 +46,33 @@ const ConfigPanel: FC<ConfigPanelProps> = ({
           gap: "10px",
         }}
       >
-        <h2 className="section-title" style={{ marginBottom: 0 }}>
+        <h2 className={styles.sectionTitle} style={{ marginBottom: 0 }}>
           处理选项
         </h2>
         {headerAction}
       </div>
 
-      <div className={`panel ${isDedupEnabled ? "panel--active" : ""}`}>
-        <div className="panel__header">
-          <div className="panel__title">数据去重</div>
-          <label className="toggle" aria-label="数据去重">
+      <div
+        className={`${styles.panel} ${isDedupEnabled ? styles.panelActive : ""}`}
+      >
+        <div className={styles.panelHeader}>
+          <div className={styles.panelTitle}>数据去重</div>
+          <label className={styles.toggle} aria-label="数据去重">
             <input
-              className="toggle__input"
+              className={styles.toggleInput}
               type="checkbox"
               checked={isDedupEnabled}
               onChange={(e) => setIsDedupEnabled(e.target.checked)}
             />
-            <span className="toggle__track" />
+            <span className={styles.toggleTrack} />
           </label>
         </div>
 
         {isDedupEnabled && availableKeys.length > 0 && (
-          <div className="panel__body">
-            <label className="field-label">依据列</label>
+          <div className={styles.panelBody}>
+            <label className={styles.fieldLabel}>依据列</label>
             <select
-              className="select"
+              className={styles.select}
               value={dedupKey}
               onChange={(e) => setDedupKey(e.target.value)}
             >
@@ -82,26 +86,28 @@ const ConfigPanel: FC<ConfigPanelProps> = ({
         )}
       </div>
 
-      <div className={`panel ${isSortEnabled ? "panel--active" : ""}`}>
-        <div className="panel__header">
-          <div className="panel__title">数据排序</div>
-          <label className="toggle" aria-label="数据排序">
+      <div
+        className={`${styles.panel} ${isSortEnabled ? styles.panelActive : ""}`}
+      >
+        <div className={styles.panelHeader}>
+          <div className={styles.panelTitle}>数据排序</div>
+          <label className={styles.toggle} aria-label="数据排序">
             <input
-              className="toggle__input"
+              className={styles.toggleInput}
               type="checkbox"
               checked={isSortEnabled}
               onChange={(e) => setIsSortEnabled(e.target.checked)}
             />
-            <span className="toggle__track" />
+            <span className={styles.toggleTrack} />
           </label>
         </div>
 
         {isSortEnabled && availableKeys.length > 0 && (
-          <div className="panel__body">
+          <div className={styles.panelBody}>
             <div style={{ marginBottom: "10px" }}>
-              <label className="field-label">依据列</label>
+              <label className={styles.fieldLabel}>依据列</label>
               <select
-                className="select"
+                className={styles.select}
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value)}
               >
@@ -114,9 +120,9 @@ const ConfigPanel: FC<ConfigPanelProps> = ({
             </div>
 
             <div>
-              <label className="field-label">排序方式</label>
+              <label className={styles.fieldLabel}>排序方式</label>
               <select
-                className="select"
+                className={styles.select}
                 value={sortOrder}
                 onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
               >

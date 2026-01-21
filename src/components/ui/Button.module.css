@@ -1,0 +1,94 @@
+/* src/components/ui/Button.module.css (Shared: Primary button styles) */
+
+.btn {
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  margin-top: 16px;
+  transition:
+    transform 160ms var(--ease),
+    box-shadow 160ms var(--ease),
+    opacity 160ms var(--ease);
+  position: relative;
+}
+
+.btnPrimary {
+  background: var(--text-strong);
+  color: #ffffff;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-cta);
+}
+
+.btnPrimary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnInline {
+  width: auto;
+  margin-top: 0;
+  padding: 12px 14px;
+}
+
+.btnInner {
+  display: grid;
+  place-items: center;
+  min-height: 20px;
+}
+
+.btnLabel {
+  transition: opacity 140ms var(--ease);
+}
+
+.btnLoading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.loadingDots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.loadingDots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  animation: dot 900ms infinite;
+}
+
+.loadingDots span:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.loadingDots span:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+@keyframes dot {
+  0%,
+  70%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}

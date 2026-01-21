@@ -4,6 +4,10 @@ import { AlertCircle, Check, File, Loader2, Trash2, X } from "lucide-react";
 import type { FC } from "react";
 import type { FileWithStatus } from "../../../hooks/useExcelProcessor";
 
+import buttonStyles from "../../../components/ui/Button.module.css";
+import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import styles from "./FileGrid.module.css";
+
 export interface FileGridProps {
   files: FileWithStatus[];
   loading: boolean;
@@ -26,7 +30,9 @@ const FileGrid: FC<FileGridProps> = ({
 
   const renderLeading = (status: FileWithStatus["status"]) => {
     if (status === "pending") {
-      return <Loader2 className="lucide--spin" size={16} strokeWidth={1.6} />;
+      return (
+        <Loader2 className={styles.lucideSpin} size={16} strokeWidth={1.6} />
+      );
     }
 
     if (status === "error") {
@@ -40,34 +46,34 @@ const FileGrid: FC<FileGridProps> = ({
     return (
       <div
         key={`${fws.file.name}-${i}`}
-        className={`file-item ${useGridView ? "file-card" : "file-row"} ${
-          fws.status === "error" ? "file-item--error" : ""
-        }`}
+        className={`${styles.fileItem} ${
+          useGridView ? styles.fileCard : styles.fileRow
+        } ${fws.status === "error" ? styles.fileItemError : ""}`}
       >
-        <div className="file-main">
-          <div className="file-leading" aria-hidden="true">
+        <div className={styles.fileMain}>
+          <div className={styles.fileLeading} aria-hidden="true">
             {renderLeading(fws.status)}
           </div>
 
-          <div className="file-text">
-            <div className="file-name" title={fws.file.name}>
+          <div className={styles.fileText}>
+            <div className={styles.fileName} title={fws.file.name}>
               <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
                 {fws.file.name}
               </span>
               {fws.status === "success" && (
-                <Check className="check" size={14} strokeWidth={2} />
+                <Check className={styles.check} size={14} strokeWidth={2} />
               )}
             </div>
-            <div className="file-meta">
+            <div className={styles.fileMeta}>
               <span>{(fws.file.size / 1024).toFixed(1)} KB</span>
               <span>·</span>
               <span
-                className={`status-text ${
+                className={`${styles.statusText} ${
                   fws.status === "error"
-                    ? "status-text--error"
+                    ? styles.statusError
                     : fws.status === "pending"
-                      ? "status-text--pending"
-                      : "status-text--success"
+                      ? styles.statusPending
+                      : styles.statusSuccess
                 }`}
               >
                 {fws.status === "error"
@@ -80,9 +86,9 @@ const FileGrid: FC<FileGridProps> = ({
           </div>
         </div>
 
-        <div className="file-actions">
+        <div className={styles.fileActions}>
           <button
-            className="icon-button icon-button--danger"
+            className={`${iconButtonStyles.iconButton} ${iconButtonStyles.iconButtonDanger}`}
             onClick={(e) => {
               e.stopPropagation();
               onRemoveFileAt(i);
@@ -99,14 +105,14 @@ const FileGrid: FC<FileGridProps> = ({
 
   return (
     <div>
-      <div className="file-header">
-        <h3 className="file-header__title">
+      <div className={styles.fileHeader}>
+        <h3 className={styles.fileHeaderTitle}>
           文件列表
-          <span className="file-header__count">{files.length} 个文件</span>
+          <span className={styles.fileHeaderCount}>{files.length} 个文件</span>
         </h3>
 
         <button
-          className="icon-button"
+          className={iconButtonStyles.iconButton}
           type="button"
           onClick={onClearAll}
           aria-label="清空列表"
@@ -117,25 +123,28 @@ const FileGrid: FC<FileGridProps> = ({
       </div>
 
       {useGridView ? (
-        <div className="file-grid">{files.map(renderItem)}</div>
+        <div className={styles.fileGrid}>{files.map(renderItem)}</div>
       ) : (
-        <div className="file-surface">{files.map(renderItem)}</div>
+        <div className={styles.fileSurface}>{files.map(renderItem)}</div>
       )}
 
       <button
-        className="btn btn--primary"
+        className={`${buttonStyles.btn} ${buttonStyles.btnPrimary}`}
         onClick={onMerge}
         disabled={loading || !hasUsableFiles}
         type="button"
       >
-        <span className="btn__inner">
-          <span className="btn__label" style={{ opacity: loading ? 0 : 1 }}>
+        <span className={buttonStyles.btnInner}>
+          <span
+            className={buttonStyles.btnLabel}
+            style={{ opacity: loading ? 0 : 1 }}
+          >
             合并并导出
           </span>
         </span>
         {loading && (
-          <span className="btn__loading" aria-hidden="true">
-            <span className="loading-dots">
+          <span className={buttonStyles.btnLoading} aria-hidden="true">
+            <span className={buttonStyles.loadingDots}>
               <span />
               <span />
               <span />

@@ -6,6 +6,10 @@ import { ArrowRight, History, Users } from "lucide-react";
 
 import { db } from "../../db";
 
+import buttonStyles from "../../components/ui/Button.module.css";
+import typographyStyles from "../../components/ui/Typography.module.css";
+import styles from "./Dashboard.module.css";
+
 export interface DashboardPageProps {
   // Navigate to a target route (e.g. open the Merging page).
   onNavigateToMerging: () => void;
@@ -77,38 +81,38 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
 
   return (
     <div>
-      <h1 className="page-title">首页</h1>
-      <p className="page-subtitle">
+      <h1 className={typographyStyles.pageTitle}>首页</h1>
+      <p className={typographyStyles.pageSubtitle}>
         {loading
           ? "正在加载你的班级数据…"
           : "快速查看班级数据概况，并从这里开始一次新的合并。"}
       </p>
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-card__label">学生总数</div>
-          <div className="stat-card__value">{stats.studentsCount}</div>
-          <div className="stat-card__hint">来自学生表（students）</div>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statCardLabel}>学生总数</div>
+          <div className={styles.statCardValue}>{stats.studentsCount}</div>
+          <div className={styles.statCardHint}>来自学生表（students）</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card__label">已合并记录数</div>
-          <div className="stat-card__value">{stats.mergeCount}</div>
-          <div className="stat-card__hint">来自历史表（mergeHistory）</div>
+        <div className={styles.statCard}>
+          <div className={styles.statCardLabel}>已合并记录数</div>
+          <div className={styles.statCardValue}>{stats.mergeCount}</div>
+          <div className={styles.statCardHint}>来自历史表（mergeHistory）</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card__label">成绩记录数</div>
-          <div className="stat-card__value">{stats.scoresCount}</div>
-          <div className="stat-card__hint">来自成绩表（scores）</div>
+        <div className={styles.statCard}>
+          <div className={styles.statCardLabel}>成绩记录数</div>
+          <div className={styles.statCardValue}>{stats.scoresCount}</div>
+          <div className={styles.statCardHint}>来自成绩表（scores）</div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-card__label">最近一次合并</div>
-          <div className="stat-card__value">
+        <div className={styles.statCard}>
+          <div className={styles.statCardLabel}>最近一次合并</div>
+          <div className={styles.statCardValue}>
             {stats.lastMergeAt ? "有" : "暂无"}
           </div>
-          <div className="stat-card__hint">
+          <div className={styles.statCardHint}>
             {stats.lastMergeAt
               ? formatDateTime(stats.lastMergeAt)
               : "完成第一次合并后将显示"}
@@ -116,12 +120,12 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
         </div>
       </div>
 
-      <div className="cta-row">
-        <div className="cta-row__copy">
-          <div className="cta-row__title">
+      <div className={styles.ctaRow}>
+        <div className={styles.ctaRowCopy}>
+          <div className={styles.ctaRowTitle}>
             {isEmpty ? "欢迎使用：开始第一次合并" : "开始一次新的合并"}
           </div>
-          <div className="cta-row__desc">
+          <div className={styles.ctaRowDesc}>
             {isEmpty
               ? "还没有任何数据。点击右侧按钮上传 Excel 并生成第一条合并历史。"
               : "上传 Excel、去重排序、导出结果，并自动写入历史记录。"}
@@ -129,7 +133,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
         </div>
 
         <button
-          className="btn btn--primary btn-inline"
+          className={`${buttonStyles.btn} ${buttonStyles.btnPrimary} ${buttonStyles.btnInline}`}
           type="button"
           onClick={onNavigateToMerging}
         >
@@ -144,9 +148,9 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
       </div>
 
       {isEmpty ? (
-        <div className="cta-row" style={{ marginTop: 12 }}>
-          <div className="cta-row__copy">
-            <div className="cta-row__title">
+        <div className={styles.ctaRow} style={{ marginTop: 12 }}>
+          <div className={styles.ctaRowCopy}>
+            <div className={styles.ctaRowTitle}>
               <span
                 style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
               >
@@ -154,7 +158,7 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
                 小提示
               </span>
             </div>
-            <div className="cta-row__desc">
+            <div className={styles.ctaRowDesc}>
               合并完成后，你可以在“数据合并”页右上角打开历史抽屉，进行预览、重新下载和删除。
             </div>
           </div>

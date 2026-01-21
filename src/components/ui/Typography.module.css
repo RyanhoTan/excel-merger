@@ -1,0 +1,14 @@
+/* src/components/ui/Typography.module.css (Shared: Page typography) */
+
+.pageTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 720;
+  letter-spacing: -0.4px;
+}
+
+.pageSubtitle {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}

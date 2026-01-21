@@ -3,6 +3,8 @@
 import type { FC, ReactNode } from "react";
 import { Bot, Combine, GraduationCap, Home, Sparkles } from "lucide-react";
 
+import styles from "./MainLayout.module.css";
+
 export type RouteKey = "dashboard" | "merging" | "students" | "ai";
 
 export interface MainLayoutProps {
@@ -42,27 +44,29 @@ const MainLayout: FC<MainLayoutProps> = ({
   ];
 
   return (
-    <div className="main-layout">
-      <aside className="sidebar" aria-label="侧边导航">
-        <div className="sidebar__card">
-          <div className="sidebar__brand">
-            <div className="sidebar__logo">
+    <div className={styles.mainLayout}>
+      <aside className={styles.sidebar} aria-label="侧边导航">
+        <div className={styles.sidebarCard}>
+          <div className={styles.sidebarBrand}>
+            <div className={styles.sidebarLogo}>
               <Sparkles size={16} />
             </div>
             <div>
-              <div className="sidebar__title">Class Manager</div>
-              <div className="sidebar__subtitle">Optical Clean Workspace</div>
+              <div className={styles.sidebarTitle}>Class Manager</div>
+              <div className={styles.sidebarSubtitle}>
+                Optical Clean Workspace
+              </div>
             </div>
           </div>
 
-          <nav className="sidebar-nav">
+          <nav className={styles.sidebarNav}>
             {navItems.map((item) => (
               <button
                 key={item.key}
                 type="button"
-                className={`sidebar-nav__item ${
-                  activeRoute === item.key ? "is-active" : ""
-                } ${item.disabled ? "is-disabled" : ""}`}
+                className={`${styles.navItem} ${
+                  activeRoute === item.key ? styles.navItemActive : ""
+                } ${item.disabled ? styles.navItemDisabled : ""}`}
                 onClick={() => {
                   if (item.disabled) return;
                   onNavigate(item.key);
@@ -71,10 +75,10 @@ const MainLayout: FC<MainLayoutProps> = ({
                 aria-disabled={item.disabled ? true : undefined}
                 disabled={item.disabled}
               >
-                <span className="sidebar-nav__icon">{item.icon}</span>
-                <span className="sidebar-nav__label">{item.label}</span>
+                <span className={styles.navIcon}>{item.icon}</span>
+                <span className={styles.navLabel}>{item.label}</span>
                 {item.badge ? (
-                  <span className="sidebar-nav__badge">{item.badge}</span>
+                  <span className={styles.navBadge}>{item.badge}</span>
                 ) : null}
               </button>
             ))}
@@ -82,8 +86,8 @@ const MainLayout: FC<MainLayoutProps> = ({
         </div>
       </aside>
 
-      <main className="workspace" aria-label="工作区">
-        <div className="workspace__inner">{children}</div>
+      <main className={styles.workspace} aria-label="工作区">
+        <div className={styles.workspaceInner}>{children}</div>
       </main>
     </div>
   );

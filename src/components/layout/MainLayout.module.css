@@ -1,0 +1,150 @@
+/* src/components/layout/MainLayout.module.css (MainLayout: Sidebar + Workspace) */
+
+.mainLayout {
+  min-height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 280px;
+  padding: 22px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebarCard {
+  height: calc(100vh - 44px);
+  overflow: auto;
+  padding: 18px;
+  background: var(--panel-translucent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(18px);
+}
+
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sidebarLogo {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 18px rgba(9, 9, 11, 0.06);
+}
+
+.sidebarTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+
+.sidebarSubtitle {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.sidebarNav {
+  display: grid;
+  gap: 8px;
+}
+
+.navItem {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease),
+    border-color 140ms var(--ease),
+    background 140ms var(--ease),
+    box-shadow 140ms var(--ease),
+    opacity 140ms var(--ease);
+}
+
+.navItem:hover {
+  transform: translateY(-1px);
+  border-color: rgba(24, 24, 27, 0.08);
+  box-shadow: 0 14px 30px rgba(9, 9, 11, 0.08);
+}
+
+.navItemActive {
+  border-color: rgba(0, 82, 255, 0.18);
+  background: rgba(0, 82, 255, 0.08);
+}
+
+.navItemDisabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.navIcon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.navItemActive .navIcon {
+  color: var(--blue);
+}
+
+.navLabel {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+
+.navBadge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f4f4f5;
+  border: 1px solid rgba(24, 24, 27, 0.06);
+  color: var(--muted);
+}
+
+.workspace {
+  flex: 1;
+  padding: 24px;
+}
+
+.workspaceInner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    padding: 16px;
+  }
+
+  .sidebarCard {
+    height: auto;
+  }
+
+  .mainLayout {
+    flex-direction: column;
+  }
+}
