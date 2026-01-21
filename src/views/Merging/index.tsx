@@ -96,12 +96,14 @@ const MergingPage: FC = () => {
   );
 
   return (
-    <div className="app-shell">
-      <aside className="control-hub">
-        <div className="control-hub__card">
+    <div className="merging-layout">
+      <aside className="merging-panel" aria-label="合并配置">
+        <div className="merging-panel__card">
           <div className="brand">
-            <h1 className="brand__title">Excel Merger</h1>
-            <p className="brand__subtitle">轻量级表格合并工具</p>
+            <h1 className="brand__title">数据合并</h1>
+            <p className="brand__subtitle">
+              上传 Excel，去重/排序，并自动写入历史
+            </p>
           </div>
 
           <ConfigPanel
@@ -142,25 +144,23 @@ const MergingPage: FC = () => {
         onDelete={handleDeleteHistory}
       />
 
-      <main className="content">
-        <div className="content__inner">
-          <Dropzone
-            filesCount={files.length}
-            isDragging={isDragging}
-            setIsDragging={setIsDragging}
-            addFiles={addFiles}
-          />
+      <main className="merging-work" aria-label="合并工作区">
+        <Dropzone
+          filesCount={files.length}
+          isDragging={isDragging}
+          setIsDragging={setIsDragging}
+          addFiles={addFiles}
+        />
 
-          <FileGrid
-            files={files}
-            loading={loading}
-            onMerge={handleMerge}
-            onClearAll={clearAll}
-            onRemoveFileAt={removeFileAt}
-          />
+        <FileGrid
+          files={files}
+          loading={loading}
+          onMerge={handleMerge}
+          onClearAll={clearAll}
+          onRemoveFileAt={removeFileAt}
+        />
 
-          <PreviewTable previewData={previewData} />
-        </div>
+        <PreviewTable previewData={previewData} />
       </main>
     </div>
   );

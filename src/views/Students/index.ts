@@ -1,3 +1,3 @@
 // src/views/Students/index.ts
 
-export {};
+export { default } from "./index.tsx";
