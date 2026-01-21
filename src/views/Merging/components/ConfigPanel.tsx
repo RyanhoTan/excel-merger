@@ -1,8 +1,10 @@
 // src/views/Merging/components/ConfigPanel.tsx
 
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 
 export interface ConfigPanelProps {
+  // Optional action area rendered at the top-right of the panel header.
+  headerAction?: ReactNode;
   availableKeys: string[];
 
   isDedupEnabled: boolean;
@@ -19,6 +21,7 @@ export interface ConfigPanelProps {
 }
 
 const ConfigPanel: FC<ConfigPanelProps> = ({
+  headerAction,
   availableKeys,
   isDedupEnabled,
   dedupKey,
@@ -33,7 +36,19 @@ const ConfigPanel: FC<ConfigPanelProps> = ({
 }) => {
   return (
     <div>
-      <h2 className="section-title">处理选项</h2>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: "10px",
+        }}
+      >
+        <h2 className="section-title" style={{ marginBottom: 0 }}>
+          处理选项
+        </h2>
+        {headerAction}
+      </div>
 
       <div className={`panel ${isDedupEnabled ? "panel--active" : ""}`}>
         <div className="panel__header">

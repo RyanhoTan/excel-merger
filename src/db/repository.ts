@@ -5,9 +5,20 @@ import Dexie from "dexie";
 import { db } from "./index";
 import type { Student } from "../models/student";
 import type { ScoreRecord } from "../models/score";
+import type { MergeHistoryRecord } from "./index";
 
 export interface StudentWithScores extends Student {
   scores: ScoreRecord[];
+}
+
+export interface MergeTask {
+  timestamp: number;
+  fileName: string;
+  fileCount: number;
+  studentCount: number;
+  operator?: string;
+  headerKeys?: string[];
+  snapshot: Record<string, unknown>[];
 }
 
 const toUserFriendlyError = (err: unknown): string => {
@@ -40,6 +51,43 @@ export const saveStudents = async (students: Student[]): Promise<void> => {
   }
 };
 
+export const saveMergeTask = async (task: MergeTask): Promise<number> => {
+  try {
+    const record: MergeHistoryRecord = {
+      timestamp: task.timestamp,
+      fileName: task.fileName,
+      fileCount: task.fileCount,
+      studentCount: task.studentCount,
+      operator: task.operator ?? "老师",
+      headerKeys: task.headerKeys,
+      snapshot: task.snapshot,
+    };
+
+    return await db.mergeHistory.add(record);
+  } catch (err) {
+    console.error("saveMergeTask failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+export const getHistoryList = async (): Promise<MergeHistoryRecord[]> => {
+  try {
+    return await db.mergeHistory.orderBy("timestamp").reverse().toArray();
+  } catch (err) {
+    console.error("getHistoryList failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+export const deleteMergeTask = async (id: number): Promise<void> => {
+  try {
+    await db.mergeHistory.delete(id);
+  } catch (err) {
+    console.error("deleteMergeTask failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
 export const addScoreRecords = async (
   records: ScoreRecord[],
 ): Promise<void> => {
@@ -47,7 +95,7 @@ export const addScoreRecords = async (
 
   const now = Date.now();
   const normalized = records
-    .filter((r) => r.studentId && r.subject && r.term && r.category)
+    .filter((r) => r.studentId)
     .map((r) => ({
       ...r,
       createdAt: r.createdAt ?? now,

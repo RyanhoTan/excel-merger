@@ -7,6 +7,7 @@ import {
   addScoreRecords,
   getAllStudentsWithScores,
   saveStudents,
+  saveMergeTask,
   upsertFileMeta,
 } from "../db/repository";
 import type { Student } from "../models/student";
@@ -41,6 +42,16 @@ export interface UseExcelProcessorActions {
   addFiles: (newFiles: FileList | null) => Promise<void>;
   processData: () => Promise<ExcelRow[]>;
   handleMerge: () => Promise<void>;
+  // Restore preview table data from a saved history snapshot.
+  restoreFromSnapshot: (
+    rows: Record<string, unknown>[],
+    headerKeys?: string[],
+  ) => void;
+  // Export arbitrary rows as an Excel file.
+  exportRowsToExcel: (
+    rows: Record<string, unknown>[],
+    fileName: string,
+  ) => void;
   clearAll: () => void;
   removeFileAt: (index: number) => void;
 
@@ -254,12 +265,57 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
     sortOrder,
   ]);
 
+  const exportRowsToExcel = useCallback(
+    (rows: Record<string, unknown>[], fileName: string) => {
+      const newSheet = XLSX.utils.json_to_sheet(rows);
+      const newWorkbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Result");
+      XLSX.writeFile(newWorkbook, fileName);
+    },
+    [],
+  );
+
+  const restoreFromSnapshot = useCallback(
+    (rows: Record<string, unknown>[], headerKeys?: string[]) => {
+      const normalizedRows: ExcelRow[] = rows.map((row) => {
+        const out: ExcelRow = {};
+        for (const [k, v] of Object.entries(row)) {
+          if (
+            typeof v === "string" ||
+            typeof v === "number" ||
+            typeof v === "boolean" ||
+            v == null
+          ) {
+            out[k] = v as ExcelValue;
+          } else {
+            out[k] = String(v);
+          }
+        }
+        return out;
+      });
+
+      if (headerKeys && headerKeys.length > 0) {
+        setAvailableKeys(headerKeys);
+        setDedupKey((prev) => prev || headerKeys[0]);
+        setSortKey((prev) => prev || headerKeys[0]);
+      } else {
+        ensureHeaderKeys(normalizedRows);
+      }
+
+      setPreviewData(normalizedRows.slice(0, 50));
+    },
+    [ensureHeaderKeys],
+  );
+
   const handleMerge = useCallback(async () => {
     if (!hasUsableFiles) return;
 
     setLoading(true);
     try {
       const finalData = await processData();
+
+      const exportFileName = `merged_${Date.now()}.xlsx`;
+      const fileCount = files.filter((f) => f.status === "success").length;
 
       // Persist to IndexedDB (best-effort, do not block export on DB failure)
       try {
@@ -313,22 +369,42 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
           }
         }
 
-        await saveStudents(Array.from(studentsMap.values()));
+        const students = Array.from(studentsMap.values());
+        await saveStudents(students);
         await addScoreRecords(scoreRecords);
+
+        await saveMergeTask({
+          timestamp: Date.now(),
+          fileName: exportFileName,
+          fileCount,
+          studentCount: students.length,
+          operator: "老师",
+          headerKeys:
+            finalData.length > 0 ? Object.keys(finalData[0]) : availableKeys,
+          snapshot: finalData as unknown as Record<string, unknown>[],
+        });
       } catch (err) {
         console.error("IndexedDB persist failed", err);
       }
 
-      const newSheet = XLSX.utils.json_to_sheet(finalData);
-      const newWorkbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Result");
-      XLSX.writeFile(newWorkbook, `merged_${Date.now()}.xlsx`);
+      exportRowsToExcel(
+        finalData as unknown as Record<string, unknown>[],
+        exportFileName,
+      );
     } catch (err) {
       alert(`失败: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setLoading(false);
     }
-  }, [hasUsableFiles, pickFirstKeyMatch, pickFirstNumberMatch, processData]);
+  }, [
+    availableKeys,
+    exportRowsToExcel,
+    files,
+    hasUsableFiles,
+    pickFirstKeyMatch,
+    pickFirstNumberMatch,
+    processData,
+  ]);
 
   const clearAll = useCallback(() => {
     setFiles([]);
@@ -418,6 +494,8 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
     addFiles,
     processData,
     handleMerge,
+    restoreFromSnapshot,
+    exportRowsToExcel,
     clearAll,
     removeFileAt,
 
