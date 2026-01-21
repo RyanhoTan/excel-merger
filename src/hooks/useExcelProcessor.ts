@@ -3,6 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as XLSX from "xlsx";
 
+import {
+  addScoreRecords,
+  getAllStudentsWithScores,
+  saveStudents,
+  upsertFileMeta,
+} from "../db/repository";
+import type { Student } from "../models/student";
+import type { ScoreRecord } from "../models/score";
+
 export type ExcelValue = string | number | boolean | null | undefined;
 export type ExcelRow = Record<string, ExcelValue>;
 
@@ -92,6 +101,32 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
     [],
   );
 
+  const pickFirstKeyMatch = useCallback(
+    (row: ExcelRow, candidates: string[]) => {
+      for (const key of candidates) {
+        const v = row[key];
+        if (v != null && String(v).trim() !== "") return String(v).trim();
+      }
+      return "";
+    },
+    [],
+  );
+
+  const pickFirstNumberMatch = useCallback(
+    (row: ExcelRow, candidates: string[]) => {
+      for (const key of candidates) {
+        const v = row[key];
+        if (typeof v === "number") return v;
+        if (typeof v === "string") {
+          const n = Number(v);
+          if (!Number.isNaN(n)) return n;
+        }
+      }
+      return NaN;
+    },
+    [],
+  );
+
   const addFiles = useCallback(
     async (newFiles: FileList | null) => {
       if (!newFiles || newFiles.length === 0) return;
@@ -122,6 +157,12 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
 
       for (const fws of filesToAdd) {
         try {
+          void upsertFileMeta({
+            name: fws.file.name,
+            size: fws.file.size,
+            lastModified: fws.file.lastModified,
+          });
+
           const rows = await parseExcelFile(fws.file);
           fileDataCacheRef.current.set(fws.file.name, rows);
           ensureHeaderKeys(rows);
@@ -219,6 +260,65 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
     setLoading(true);
     try {
       const finalData = await processData();
+
+      // Persist to IndexedDB (best-effort, do not block export on DB failure)
+      try {
+        const studentIdCandidates = [
+          "studentId",
+          "学号",
+          "学号/班级ID",
+          "id",
+          "ID",
+        ];
+        const nameCandidates = ["name", "姓名", "学生姓名"];
+        const subjectCandidates = ["subject", "科目"];
+        const termCandidates = ["term", "学期"];
+        const categoryCandidates = ["category", "考试类型", "类型"];
+        const scoreCandidates = ["score", "成绩", "分数"];
+
+        const studentsMap = new Map<string, Student>();
+        const scoreRecords: ScoreRecord[] = [];
+
+        for (const row of finalData) {
+          const studentId = pickFirstKeyMatch(row, studentIdCandidates);
+          if (!studentId) continue;
+
+          const name = pickFirstKeyMatch(row, nameCandidates);
+          const subject = pickFirstKeyMatch(row, subjectCandidates) || "";
+          const term = pickFirstKeyMatch(row, termCandidates) || "";
+          const category = pickFirstKeyMatch(row, categoryCandidates) || "";
+          const score = pickFirstNumberMatch(row, scoreCandidates);
+
+          if (!studentsMap.has(studentId)) {
+            studentsMap.set(studentId, {
+              studentId,
+              name,
+            });
+          } else if (name) {
+            const existing = studentsMap.get(studentId);
+            if (existing && !existing.name) {
+              studentsMap.set(studentId, { ...existing, name });
+            }
+          }
+
+          if (!Number.isNaN(score)) {
+            scoreRecords.push({
+              studentId,
+              subject,
+              term,
+              category,
+              score,
+              raw: row as unknown as Record<string, unknown>,
+            });
+          }
+        }
+
+        await saveStudents(Array.from(studentsMap.values()));
+        await addScoreRecords(scoreRecords);
+      } catch (err) {
+        console.error("IndexedDB persist failed", err);
+      }
+
       const newSheet = XLSX.utils.json_to_sheet(finalData);
       const newWorkbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(newWorkbook, newSheet, "Result");
@@ -228,7 +328,7 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
     } finally {
       setLoading(false);
     }
-  }, [hasUsableFiles, processData]);
+  }, [hasUsableFiles, pickFirstKeyMatch, pickFirstNumberMatch, processData]);
 
   const clearAll = useCallback(() => {
     setFiles([]);
@@ -254,13 +354,54 @@ export const useExcelProcessor = (): UseExcelProcessorReturn => {
   }, []);
 
   useEffect(() => {
-    if (!hasUsableFiles) {
-      setPreviewData([]);
-      return;
-    }
-
+    if (!hasUsableFiles) return;
     void processData();
   }, [hasUsableFiles, processData]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreFromDb = async () => {
+      try {
+        const studentsWithScores = await getAllStudentsWithScores();
+        if (cancelled) return;
+
+        const restoredRows: ExcelRow[] = [];
+
+        for (const s of studentsWithScores) {
+          if (s.scores.length === 0) {
+            restoredRows.push({
+              studentId: s.studentId,
+              name: s.name,
+            });
+            continue;
+          }
+
+          for (const score of s.scores) {
+            restoredRows.push({
+              studentId: s.studentId,
+              name: s.name,
+              subject: score.subject,
+              term: score.term,
+              category: score.category,
+              score: score.score,
+            });
+          }
+        }
+
+        setPreviewData(restoredRows.slice(0, 50));
+        if (restoredRows.length > 0) ensureHeaderKeys(restoredRows);
+      } catch (err) {
+        console.error("restoreFromDb failed", err);
+      }
+    };
+
+    void restoreFromDb();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ensureHeaderKeys]);
 
   return {
     files,
