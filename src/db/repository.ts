@@ -21,6 +21,38 @@ export interface MergeTask {
   snapshot: Record<string, unknown>[];
 }
 
+export interface DashboardRecentActivity {
+  // Dashboard data: Merge history record id.
+  id: number;
+  // Dashboard data: Activity time.
+  timestamp: number;
+  // Dashboard data: Primary title to render.
+  title: string;
+  // Dashboard data: Secondary description to render.
+  description: string;
+}
+
+export interface DashboardStats {
+  // Dashboard data: Total students count.
+  studentCount: number;
+  // Dashboard data: Total merged tasks count.
+  mergeCount: number;
+  // Dashboard data: Total score records count.
+  scoreCount: number;
+  // Dashboard data: Total imported files count.
+  fileCount: number;
+  // Dashboard data: Latest merge timestamp.
+  lastMergeAt?: number;
+  // Dashboard data: Trend percent for students (recent period vs previous period).
+  studentTrend?: number;
+  // Dashboard data: Trend percent for merges (recent period vs previous period).
+  mergeTrend?: number;
+  // Dashboard data: Trend percent for scores (recent period vs previous period).
+  scoreTrend?: number;
+  // Dashboard data: Recent activities list.
+  recentActivities: DashboardRecentActivity[];
+}
+
 const toUserFriendlyError = (err: unknown): string => {
   if (err instanceof Dexie.QuotaExceededError) return "存储空间不足";
   if (err instanceof Dexie.ConstraintError) return "数据约束冲突";
@@ -155,6 +187,113 @@ export const upsertFileMeta = async (meta: {
     });
   } catch (err) {
     console.error("upsertFileMeta failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+const toTrendPercent = (
+  current: number,
+  previous: number,
+): number | undefined => {
+  if (previous <= 0) return undefined;
+  return ((current - previous) / previous) * 100;
+};
+
+// Dashboard data API: Fetch stats and recent activities for the Dashboard page.
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  try {
+    // Dashboard data: basic counts and latest merge.
+    const [studentCount, scoreCount, mergeCount, fileCount, latest] =
+      await Promise.all([
+        db.students.count(),
+        db.scores.count(),
+        db.mergeHistory.count(),
+        db.files.count(),
+        db.mergeHistory.orderBy("timestamp").last(),
+      ]);
+
+    // Dashboard data: recent merge activities (most recent first).
+    const recent = await db.mergeHistory
+      .orderBy("timestamp")
+      .reverse()
+      .limit(6)
+      .toArray();
+
+    const recentActivities: DashboardRecentActivity[] = recent
+      .filter(
+        (r): r is MergeHistoryRecord & { id: number } =>
+          typeof r.id === "number",
+      )
+      .map((r) => ({
+        id: r.id,
+        timestamp: r.timestamp,
+        title: r.fileName ? `合并：${r.fileName}` : "合并记录",
+        description: `${r.fileCount} 个文件，${r.studentCount} 名学生`,
+      }));
+
+    // Dashboard data: compute simple 7-day trend vs previous 7-day window.
+    const now = Date.now();
+    const dayMs = 24 * 60 * 60 * 1000;
+    const startRecent = now - 7 * dayMs;
+    const startPrev = now - 14 * dayMs;
+
+    const [recentMerges, prevMerges] = await Promise.all([
+      db.mergeHistory
+        .where("timestamp")
+        .between(startRecent, now, true, true)
+        .count(),
+      db.mergeHistory
+        .where("timestamp")
+        .between(startPrev, startRecent, true, false)
+        .count(),
+    ]);
+
+    // student.createdAt/score.createdAt is optional, so missing timestamps are ignored for trend.
+    const [recentStudents, prevStudents, recentScores, prevScores] =
+      await Promise.all([
+        db.students
+          .filter(
+            (s) =>
+              typeof s.createdAt === "number" && s.createdAt >= startRecent,
+          )
+          .count(),
+        db.students
+          .filter(
+            (s) =>
+              typeof s.createdAt === "number" &&
+              s.createdAt >= startPrev &&
+              s.createdAt < startRecent,
+          )
+          .count(),
+        db.scores
+          .filter(
+            (r) =>
+              typeof r.createdAt === "number" && r.createdAt >= startRecent,
+          )
+          .count(),
+        db.scores
+          .filter(
+            (r) =>
+              typeof r.createdAt === "number" &&
+              r.createdAt >= startPrev &&
+              r.createdAt < startRecent,
+          )
+          .count(),
+      ]);
+
+    return {
+      studentCount,
+      mergeCount,
+      scoreCount,
+      fileCount,
+      lastMergeAt: latest?.timestamp,
+      studentTrend: toTrendPercent(recentStudents, prevStudents),
+      mergeTrend: toTrendPercent(recentMerges, prevMerges),
+      scoreTrend: toTrendPercent(recentScores, prevScores),
+      recentActivities,
+    };
+  } catch (err) {
+    console.error("getDashboardStats failed", err);
     throw new Error(toUserFriendlyError(err));
   }
 };

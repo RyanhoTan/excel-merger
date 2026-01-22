@@ -12,8 +12,11 @@ import typographyStyles from "./components/ui/Typography.module.css";
 
 const App: FC = () => {
   const getRouteFromHash = useCallback((): RouteKey => {
+    // App routing: This project uses hash-based routing (e.g. #/dashboard, #/merging).
+    // Keep backward compatibility with old hashes like #dashboard.
     const raw = window.location.hash.replace("#", "");
-    const route = raw || "dashboard";
+    const normalized = raw.startsWith("/") ? raw.slice(1) : raw;
+    const route = normalized || "dashboard";
     if (route === "dashboard") return "dashboard";
     if (route === "merging") return "merging";
     if (route === "students") return "students";
@@ -30,7 +33,7 @@ const App: FC = () => {
   }, [getRouteFromHash]);
 
   const navigate = useCallback((next: RouteKey) => {
-    window.location.hash = next;
+    window.location.hash = `/${next}`;
   }, []);
 
   const page = useMemo(() => {
