@@ -1,7 +1,7 @@
 // src/views/Merging/components/PreviewTable.tsx
 
 import type { FC } from "react";
-import type { ExcelRow } from "../../../hooks/useExcelProcessor";
+import type { ExcelRow } from "@/hooks/useExcelProcessor";
 
 import styles from "./PreviewTable.module.css";
 

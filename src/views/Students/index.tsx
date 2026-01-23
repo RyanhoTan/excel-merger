@@ -16,14 +16,14 @@ import {
   type ImportStudentsResult,
   type ClassSummary,
   type StudentProfileWithStats,
-} from "../../db/repository";
+} from "@/db/repository";
 import ClassDetailView from "./components/ClassDetailView";
 import CreateClassModal from "./components/CreateClassModal";
 import EditStudentDrawer from "./components/EditStudentDrawer";
 import ImportStudentModal from "./components/ImportStudentModal";
 import StudentsToast from "./components/StudentsToast";
 
-import typographyStyles from "../../components/ui/Typography.module.css";
+import typographyStyles from "@/components/ui/Typography.module.css";
 
 import styles from "./Students.module.css";
 

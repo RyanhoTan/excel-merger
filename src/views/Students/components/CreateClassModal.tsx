@@ -4,10 +4,10 @@ import type { ChangeEvent, FC } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { Plus, X } from "lucide-react";
 
-import { createClass } from "../../../db/repository";
+import { createClass } from "@/db/repository";
 
-import buttonStyles from "../../../components/ui/Button.module.css";
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import buttonStyles from "@/components/ui/Button.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "../Students.module.css";
 
 export interface CreateClassModalProps {

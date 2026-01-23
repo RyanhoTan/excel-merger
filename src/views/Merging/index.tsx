@@ -4,16 +4,16 @@ import type { FC } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { History } from "lucide-react";
 
-import { useExcelProcessor } from "../../hooks/useExcelProcessor";
-import { deleteMergeTask, getHistoryList } from "../../db/repository";
-import type { MergeHistoryRecord } from "../../db/index";
+import { useExcelProcessor } from "@/hooks/useExcelProcessor";
+import { deleteMergeTask, getHistoryList } from "@/db/repository";
+import type { MergeHistoryRecord } from "@/db/index";
 import ConfigPanel from "./components/ConfigPanel";
 import Dropzone from "./components/Dropzone";
 import FileGrid from "./components/FileGrid";
 import HistoryDrawer from "./components/HistoryDrawer";
 import PreviewTable from "./components/PreviewTable";
 
-import iconButtonStyles from "../../components/ui/IconButton.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "./MergingPage.module.css";
 
 const MergingPage: FC = () => {

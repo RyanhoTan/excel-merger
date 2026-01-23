@@ -3,9 +3,9 @@
 import type { FC } from "react";
 import { ChevronLeft, GraduationCap, Pencil } from "lucide-react";
 
-import type { StudentProfileWithStats } from "../../../db/repository";
+import type { StudentProfileWithStats } from "@/db/repository";
 
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "../Students.module.css";
 
 export interface ClassDetailViewProps {

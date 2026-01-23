@@ -12,14 +12,14 @@ import {
   Users,
 } from "lucide-react";
 
-import { getGlobalStats, type GlobalStats } from "../../db/repository";
+import { getGlobalStats, type GlobalStats } from "@/db/repository";
 import StatCard from "./components/StatCard";
 import TrendChart from "./components/TrendChart";
 
-import { mockAverageScoresData, mockStatCardsData } from "../../data/mockData";
+import { mockAverageScoresData, mockStatCardsData } from "@/data/mockData";
 
-import buttonStyles from "../../components/ui/Button.module.css";
-import typographyStyles from "../../components/ui/Typography.module.css";
+import buttonStyles from "@/components/ui/Button.module.css";
+import typographyStyles from "@/components/ui/Typography.module.css";
 import styles from "./Dashboard.module.css";
 
 export interface DashboardPageProps {

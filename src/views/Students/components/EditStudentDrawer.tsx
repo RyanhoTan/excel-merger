@@ -4,11 +4,11 @@ import type { ChangeEvent, FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pencil, Save, X } from "lucide-react";
 
-import type { StudentProfileWithStats } from "../../../db/repository";
-import { updateStudentInfo } from "../../../db/repository";
+import type { StudentProfileWithStats } from "@/db/repository";
+import { updateStudentInfo } from "@/db/repository";
 
-import buttonStyles from "../../../components/ui/Button.module.css";
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import buttonStyles from "@/components/ui/Button.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "../Students.module.css";
 
 export interface EditStudentDrawerProps {

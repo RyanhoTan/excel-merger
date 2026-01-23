@@ -2,10 +2,10 @@
 
 import { AlertCircle, Check, File, Loader2, Trash2, X } from "lucide-react";
 import type { FC } from "react";
-import type { FileWithStatus } from "../../../hooks/useExcelProcessor";
+import type { FileWithStatus } from "@/hooks/useExcelProcessor";
 
-import buttonStyles from "../../../components/ui/Button.module.css";
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import buttonStyles from "@/components/ui/Button.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "./FileGrid.module.css";
 
 export interface FileGridProps {

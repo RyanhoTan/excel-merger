@@ -14,10 +14,10 @@ import * as XLSX from "xlsx";
 import {
   importStudentsFromExcel,
   type ImportStudentsResult,
-} from "../../../db/repository";
+} from "@/db/repository";
 
-import buttonStyles from "../../../components/ui/Button.module.css";
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import buttonStyles from "@/components/ui/Button.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "../Students.module.css";
 
 export interface ImportStudentModalProps {

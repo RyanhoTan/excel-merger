@@ -3,9 +3,9 @@
 import type { FC } from "react";
 import { Download, Eye, History, RefreshCcw, Trash2, X } from "lucide-react";
 
-import type { MergeHistoryRecord } from "../../../db/index";
+import type { MergeHistoryRecord } from "@/db/index";
 
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "./HistoryDrawer.module.css";
 
 export interface HistoryDrawerProps {

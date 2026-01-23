@@ -3,7 +3,7 @@
 import type { FC } from "react";
 import { CheckCircle2, X } from "lucide-react";
 
-import iconButtonStyles from "../../../components/ui/IconButton.module.css";
+import iconButtonStyles from "@/components/ui/IconButton.module.css";
 import styles from "../Students.module.css";
 
 export interface StudentsToastProps {
