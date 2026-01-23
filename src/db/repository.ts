@@ -53,6 +53,34 @@ export interface DashboardStats {
   recentActivities: DashboardRecentActivity[];
 }
 
+export interface GlobalTrendPoint {
+  // Dashboard analysis module: Exam name to show on X-axis.
+  name: string;
+  // Dashboard analysis module: Average score value.
+  score: number;
+}
+
+export interface GlobalStats {
+  // Dashboard data: Total students count.
+  studentCount: number;
+  // Dashboard data: Total merge history count.
+  historyCount: number;
+  // Dashboard data: Total score records count.
+  scoreCount: number;
+  // Dashboard data: Total imported files count.
+  fileCount: number;
+  // Dashboard data: Trend percent for students.
+  studentTrend?: number;
+  // Dashboard data: Trend percent for merge history.
+  historyTrend?: number;
+  // Dashboard data: Trend percent for scores.
+  scoreTrend?: number;
+  // Dashboard data: Recent activities list.
+  recentActivities: DashboardRecentActivity[];
+  // Dashboard analysis module: Trend chart data.
+  trendChartData: GlobalTrendPoint[];
+}
+
 const toUserFriendlyError = (err: unknown): string => {
   if (err instanceof Dexie.QuotaExceededError) return "存储空间不足";
   if (err instanceof Dexie.ConstraintError) return "数据约束冲突";
@@ -79,6 +107,51 @@ export const saveStudents = async (students: Student[]): Promise<void> => {
     });
   } catch (err) {
     console.error("saveStudents failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+// Dashboard data API: Fetch global stats for the Dashboard page.
+// This is a higher-level API used by src/views/Dashboard/index.tsx.
+export const getGlobalStats = async (): Promise<GlobalStats> => {
+  try {
+    const dashboard = await getDashboardStats();
+
+    // Dashboard analysis module: Build average score trend points.
+    // Current DB schema doesn't have an explicit "exam" table, so we group by term.
+    // term is treated as the "exam name" (fallback to category/subject if needed).
+    const scoreRecords = await db.scores.toArray();
+    const group = new Map<string, { sum: number; count: number }>();
+    for (const r of scoreRecords) {
+      const key = (r.term || r.category || r.subject || "未知考试").trim();
+      const prev = group.get(key) ?? { sum: 0, count: 0 };
+      group.set(key, {
+        sum: prev.sum + (Number(r.score) || 0),
+        count: prev.count + 1,
+      });
+    }
+
+    const trendChartData: GlobalTrendPoint[] = Array.from(group.entries())
+      .map(([name, agg]) => ({
+        name,
+        score: agg.count ? agg.sum / agg.count : 0,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(0, 8);
+
+    return {
+      studentCount: dashboard.studentCount,
+      historyCount: dashboard.mergeCount,
+      scoreCount: dashboard.scoreCount,
+      fileCount: dashboard.fileCount,
+      studentTrend: dashboard.studentTrend,
+      historyTrend: dashboard.mergeTrend,
+      scoreTrend: dashboard.scoreTrend,
+      recentActivities: dashboard.recentActivities,
+      trendChartData,
+    };
+  } catch (err) {
+    console.error("getGlobalStats failed", err);
     throw new Error(toUserFriendlyError(err));
   }
 };

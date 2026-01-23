@@ -13,6 +13,7 @@
   --muted-2: #a1a1aa;
 
   --blue: #0052ff;
+  --primary: var(--blue);
   --success: #16a34a;
   --danger: #dc2626;
   --danger-tint: #fef2f2;

@@ -1,26 +1,22 @@
 // src/views/Dashboard/index.tsx
 
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   BarChart3,
+  CheckCircle,
   Combine,
   FileSpreadsheet,
+  TrendingUp,
   Users,
 } from "lucide-react";
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
-import { getDashboardStats, type DashboardStats } from "../../db/repository";
+import { getGlobalStats, type GlobalStats } from "../../db/repository";
 import StatCard from "./components/StatCard";
+import TrendChart from "./components/TrendChart";
+
+import { mockAverageScoresData, mockStatCardsData } from "../../data/mockData";
 
 import buttonStyles from "../../components/ui/Button.module.css";
 import typographyStyles from "../../components/ui/Typography.module.css";
@@ -31,6 +27,18 @@ export interface DashboardPageProps {
   onNavigateToMerging: () => void;
 }
 
+// Dashboard page / Dev switch: Prefer mock data in development to preview UI quickly.
+// Production build will always use real repository data.
+const USE_MOCK_DASHBOARD_DATA = import.meta.env.DEV && false;
+
+// Dashboard page / Mock helpers: Map iconName to a Lucide icon component.
+const iconByName: Record<string, ReactNode> = {
+  Users: <Users size={16} />,
+  FileSpreadsheet: <FileSpreadsheet size={16} />,
+  TrendingUp: <TrendingUp size={16} />,
+  CheckCircle: <CheckCircle size={16} />,
+};
+
 const formatDateTime = (timestamp: number) => {
   const d = new Date(timestamp);
   const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -39,22 +47,60 @@ const formatDateTime = (timestamp: number) => {
 
 const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
   const [loading, setLoading] = useState(false);
-  const [stats, setStats] = useState<DashboardStats>(() => ({
+  const [stats, setStats] = useState<GlobalStats>(() => ({
     studentCount: 0,
-    mergeCount: 0,
+    historyCount: 0,
     scoreCount: 0,
     fileCount: 0,
     recentActivities: [],
+    trendChartData: [],
   }));
 
-  // Dashboard page / Data loading: Fetch stats + activities via repository API.
+  // Dashboard page / Data loading: Fetch global stats via repository API.
   useEffect(() => {
     let cancelled = false;
+
+    // Dashboard page / Data loading (dev): Use mock data to avoid relying on DB state.
+    if (USE_MOCK_DASHBOARD_DATA) {
+      setLoading(false);
+      setStats({
+        studentCount:
+          typeof mockStatCardsData.find((x) => x.id === "studentCount")
+            ?.value === "number"
+            ? (mockStatCardsData.find((x) => x.id === "studentCount")
+                ?.value as number)
+            : 0,
+        historyCount:
+          typeof mockStatCardsData.find((x) => x.id === "importCount")
+            ?.value === "number"
+            ? (mockStatCardsData.find((x) => x.id === "importCount")
+                ?.value as number)
+            : 0,
+        scoreCount: 0,
+        fileCount: 0,
+        studentTrend: mockStatCardsData.find((x) => x.id === "studentCount")
+          ?.trend,
+        historyTrend: mockStatCardsData.find((x) => x.id === "importCount")
+          ?.trend,
+        scoreTrend:
+          typeof mockStatCardsData.find((x) => x.id === "avgScore")?.trend ===
+          "number"
+            ? mockStatCardsData.find((x) => x.id === "avgScore")?.trend
+            : undefined,
+        recentActivities: [],
+        trendChartData: mockAverageScoresData
+          .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
+          .map((p) => ({ name: p.name, score: p.averageScore })),
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const load = async () => {
       setLoading(true);
       try {
-        const next = await getDashboardStats();
+        const next = await getGlobalStats();
         if (!cancelled) setStats(next);
       } catch (err) {
         console.error("Dashboard stats load failed", err);
@@ -73,19 +119,6 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
   // Dashboard page / Empty state: Guide users to import/merge data when no students exist.
   const isEmpty = useMemo(() => stats.studentCount === 0, [stats.studentCount]);
 
-  // Dashboard page / Chart placeholder: Convert activities into a small time-series dataset.
-  const trendData = useMemo(() => {
-    if (stats.recentActivities.length === 0) return [];
-    const items = [...stats.recentActivities]
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .map((a, idx) => ({
-        name: String(idx + 1),
-        time: formatDateTime(a.timestamp).slice(5, 16),
-        merges: idx + 1,
-      }));
-    return items;
-  }, [stats.recentActivities]);
-
   return (
     <div>
       <h1 className={typographyStyles.pageTitle}>首页</h1>
@@ -97,29 +130,53 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
 
       {/* Dashboard page / Top stats: 4 StatCard components */}
       <div className={styles.statsGrid}>
-        <StatCard
-          title="学生总数"
-          value={stats.studentCount}
-          icon={<Users size={16} />}
-          trend={stats.studentTrend}
-        />
-        <StatCard
-          title="合并次数"
-          value={stats.mergeCount}
-          icon={<Combine size={16} />}
-          trend={stats.mergeTrend}
-        />
-        <StatCard
-          title="成绩记录"
-          value={stats.scoreCount}
-          icon={<BarChart3 size={16} />}
-          trend={stats.scoreTrend}
-        />
-        <StatCard
-          title="已导入文件"
-          value={stats.fileCount}
-          icon={<FileSpreadsheet size={16} />}
-        />
+        {USE_MOCK_DASHBOARD_DATA ? (
+          mockStatCardsData.map((item) => {
+            const icon = iconByName[item.iconName] ?? <Users size={16} />;
+            const value =
+              typeof item.value === "number"
+                ? `${item.value}${item.unit}`
+                : item.unit === "%" && String(item.value).endsWith("%")
+                  ? String(item.value)
+                  : `${item.value}${item.unit}`;
+
+            return (
+              <StatCard
+                key={item.id}
+                title={item.title}
+                value={value}
+                icon={icon}
+                trend={item.trend}
+              />
+            );
+          })
+        ) : (
+          <>
+            <StatCard
+              title="学生总数"
+              value={stats.studentCount}
+              icon={<Users size={16} />}
+              trend={stats.studentTrend}
+            />
+            <StatCard
+              title="合并次数"
+              value={stats.historyCount}
+              icon={<Combine size={16} />}
+              trend={stats.historyTrend}
+            />
+            <StatCard
+              title="成绩记录"
+              value={stats.scoreCount}
+              icon={<BarChart3 size={16} />}
+              trend={stats.scoreTrend}
+            />
+            <StatCard
+              title="已导入文件"
+              value={stats.fileCount}
+              icon={<FileSpreadsheet size={16} />}
+            />
+          </>
+        )}
       </div>
 
       {/* Dashboard page / Empty state: shown when there are no students */}
@@ -186,25 +243,15 @@ const DashboardPage: FC<DashboardPageProps> = ({ onNavigateToMerging }) => {
               </div>
             </div>
 
-            {trendData.length === 0 ? (
+            {stats.historyCount === 0 ? (
+              <div className={styles.panelEmpty}>
+                暂无数据，请先前往“数据合并”模块上传成绩
+              </div>
+            ) : stats.trendChartData.length === 0 ? (
               <div className={styles.panelEmpty}>暂无趋势数据</div>
             ) : (
               <div className={styles.chartWrap}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData} margin={{ left: 8, right: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" hide />
-                    <YAxis allowDecimals={false} width={20} />
-                    <Tooltip />
-                    <Line
-                      type="monotone"
-                      dataKey="merges"
-                      stroke="var(--primary)"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                <TrendChart data={stats.trendChartData} />
               </div>
             )}
           </section>
