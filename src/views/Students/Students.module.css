@@ -1,0 +1,349 @@
+/* src/views/Students/Students.module.css（学生档案模块：班级列表 / 班级学生列表） */
+
+.stage {
+  position: relative;
+  margin-top: 16px;
+  min-height: 320px;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 200ms var(--ease),
+    transform 200ms var(--ease);
+}
+
+.panelVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.panelHidden {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+/* 班级列表页：Grid 布局 */
+.classGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 980px) {
+  .classGrid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+/* 班级卡片：高级感卡片（对齐首页风格） */
+.classCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 14px;
+  box-shadow:
+    0 10px 26px rgba(15, 23, 42, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease),
+    box-shadow 160ms var(--ease),
+    border-color 160ms var(--ease);
+}
+
+.classCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(148, 163, 184, 0.45);
+  box-shadow:
+    0 14px 32px rgba(15, 23, 42, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.classCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.classCardIcon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(248, 250, 252, 0.8);
+  color: var(--text);
+}
+
+.classCardTitle {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.25px;
+  color: var(--text);
+}
+
+.classCardMeta {
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.metaLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.metaValue {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.progressWrap {
+  margin-top: 12px;
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.progressLabel {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.progressValue {
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.progressBar {
+  margin-top: 8px;
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(248, 250, 252, 0.7);
+  overflow: hidden;
+}
+
+.progressBarInner {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 82, 255, 0.85),
+    rgba(0, 82, 255, 0.55)
+  );
+}
+
+/* 班级详情页：面包屑 */
+.view {
+  width: 100%;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.breadcrumbBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 140ms var(--ease),
+    box-shadow 140ms var(--ease);
+}
+
+.breadcrumbBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+}
+
+.breadcrumbSep {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.breadcrumbCurrent {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.detailHeader {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 14px;
+}
+
+.detailTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detailIcon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.detailTitle {
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: -0.25px;
+  color: var(--text);
+}
+
+.detailSubtitle {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* 班级详情页：表格（条纹 + hover） */
+.tableCard {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 10px 26px rgba(15, 23, 42, 0.06),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+
+.tableScroll {
+  overflow: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.th {
+  text-align: left;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: -0.2px;
+  color: var(--muted);
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(248, 250, 252, 0.7);
+}
+
+.thActions {
+  text-align: right;
+}
+
+.tr:nth-child(odd) {
+  background: rgba(248, 250, 252, 0.45);
+}
+
+.tr:hover {
+  background: rgba(226, 232, 240, 0.45);
+}
+
+.td {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  vertical-align: middle;
+}
+
+.tdActions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.actionBtn {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 140ms var(--ease),
+    box-shadow 140ms var(--ease),
+    background 140ms var(--ease);
+}
+
+.actionBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* 班级详情页：空状态插图 */
+.emptyState {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.72);
+  padding: 22px;
+  text-align: center;
+}
+
+.emptyIllustration {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(248, 250, 252, 0.8);
+  color: var(--text);
+}
+
+.emptyTitle {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: var(--text);
+}
+
+.emptyDesc {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}

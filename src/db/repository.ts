@@ -370,3 +370,215 @@ export const getDashboardStats = async (): Promise<DashboardStats> => {
     throw new Error(toUserFriendlyError(err));
   }
 };
+
+export interface ClassSummary {
+  // 学生档案页：班级名称。
+  className: string;
+  // 学生档案页：班级人数。
+  studentCount: number;
+  // 学生档案页：最近活跃时间（用于班级卡片展示）。
+  lastActiveAt?: number;
+  // 学生档案页：成绩录入完整度（0~1，用于卡片底部进度条）。
+  completionRate: number;
+}
+
+export interface StudentProfileWithStats {
+  // 学生档案页：学号。
+  studentId: string;
+  // 学生档案页：姓名。
+  name: string;
+  // 学生档案页：班级名称。
+  className: string;
+  // 学生档案页：累计考试次数（按 term/category/subject 去重）。
+  examCount: number;
+  // 学生档案页：成绩记录条数。
+  scoreCount: number;
+  // 学生档案页：平均分（若无成绩则为 undefined）。
+  averageScore?: number;
+  // 学生档案页：最近活跃时间。
+  lastActiveAt?: number;
+}
+
+// 学生档案页：尝试从学生表或成绩 raw 中提取班级名称。
+const resolveStudentClassName = (
+  student: Student,
+  scores: ScoreRecord[],
+): string => {
+  const direct = student.className?.trim();
+  if (direct) return direct;
+
+  const pickFromRaw = (raw: Record<string, unknown> | undefined): string => {
+    if (!raw) return "";
+    const candidates = [
+      "className",
+      "class",
+      "Class",
+      "班级",
+      "班级名称",
+      "班级名",
+      "年级班级",
+    ];
+    for (const key of candidates) {
+      const v = raw[key];
+      if (v != null && String(v).trim() !== "") return String(v).trim();
+    }
+    return "";
+  };
+
+  for (const s of scores) {
+    const name = pickFromRaw(s.raw);
+    if (name) return name;
+  }
+
+  return "未分班";
+};
+
+// 学生档案页：该函数用于聚合班级数据（从 students 表提取不重复班级并统计人数/活跃/完整度）。
+export const getClassesSummary = async (): Promise<ClassSummary[]> => {
+  try {
+    const students = await db.students.toArray();
+    if (students.length === 0) return [];
+
+    const studentIds = students.map((s) => s.studentId);
+    const scores = await db.scores
+      .where("studentId")
+      .anyOf(studentIds)
+      .toArray();
+
+    const scoresByStudentId = new Map<string, ScoreRecord[]>();
+    for (const r of scores) {
+      const list = scoresByStudentId.get(r.studentId) ?? [];
+      list.push(r);
+      scoresByStudentId.set(r.studentId, list);
+    }
+
+    const classAgg = new Map<
+      string,
+      { studentCount: number; lastActiveAt?: number; withScoreCount: number }
+    >();
+
+    for (const s of students) {
+      const studentScores = scoresByStudentId.get(s.studentId) ?? [];
+      const className = resolveStudentClassName(s, studentScores);
+
+      const candidateTimes: number[] = [];
+      if (typeof s.updatedAt === "number") candidateTimes.push(s.updatedAt);
+      if (typeof s.createdAt === "number") candidateTimes.push(s.createdAt);
+      for (const r of studentScores) {
+        if (typeof r.createdAt === "number") candidateTimes.push(r.createdAt);
+      }
+      const lastActiveAt =
+        candidateTimes.length > 0 ? Math.max(...candidateTimes) : undefined;
+
+      const agg = classAgg.get(className) ?? {
+        studentCount: 0,
+        lastActiveAt: undefined,
+        withScoreCount: 0,
+      };
+
+      agg.studentCount += 1;
+      if (studentScores.length > 0) agg.withScoreCount += 1;
+      if (typeof lastActiveAt === "number") {
+        agg.lastActiveAt =
+          typeof agg.lastActiveAt === "number"
+            ? Math.max(agg.lastActiveAt, lastActiveAt)
+            : lastActiveAt;
+      }
+
+      classAgg.set(className, agg);
+    }
+
+    return Array.from(classAgg.entries())
+      .map(([className, agg]) => ({
+        className,
+        studentCount: agg.studentCount,
+        lastActiveAt: agg.lastActiveAt,
+        completionRate: agg.studentCount
+          ? agg.withScoreCount / agg.studentCount
+          : 0,
+      }))
+      .sort((a, b) => a.className.localeCompare(b.className));
+  } catch (err) {
+    console.error("getClassesSummary failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+// 学生档案页：该函数用于获取某个班级下的学生档案及成绩统计。
+export const getStudentsByClass = async (
+  className: string,
+): Promise<StudentProfileWithStats[]> => {
+  try {
+    const target = className.trim() || "未分班";
+    const students = await db.students.toArray();
+    if (students.length === 0) return [];
+
+    const studentIds = students.map((s) => s.studentId);
+    const scores = await db.scores
+      .where("studentId")
+      .anyOf(studentIds)
+      .toArray();
+
+    const scoresByStudentId = new Map<string, ScoreRecord[]>();
+    for (const r of scores) {
+      const list = scoresByStudentId.get(r.studentId) ?? [];
+      list.push(r);
+      scoresByStudentId.set(r.studentId, list);
+    }
+
+    const result: StudentProfileWithStats[] = [];
+
+    for (const s of students) {
+      const studentScores = scoresByStudentId.get(s.studentId) ?? [];
+      const resolvedClassName = resolveStudentClassName(s, studentScores);
+      if (resolvedClassName !== target) continue;
+
+      const examKeySet = new Set<string>();
+      let sum = 0;
+      let count = 0;
+      let lastActiveAt: number | undefined = undefined;
+
+      if (typeof s.updatedAt === "number") lastActiveAt = s.updatedAt;
+      if (typeof s.createdAt === "number") {
+        lastActiveAt =
+          typeof lastActiveAt === "number"
+            ? Math.max(lastActiveAt, s.createdAt)
+            : s.createdAt;
+      }
+
+      for (const r of studentScores) {
+        const examKey = (
+          r.term ||
+          r.category ||
+          r.subject ||
+          "未知考试"
+        ).trim();
+        examKeySet.add(examKey);
+        sum += Number(r.score) || 0;
+        count += 1;
+
+        if (typeof r.createdAt === "number") {
+          lastActiveAt =
+            typeof lastActiveAt === "number"
+              ? Math.max(lastActiveAt, r.createdAt)
+              : r.createdAt;
+        }
+      }
+
+      result.push({
+        studentId: s.studentId,
+        name: s.name,
+        className: resolvedClassName,
+        examCount: examKeySet.size,
+        scoreCount: studentScores.length,
+        averageScore: count ? sum / count : undefined,
+        lastActiveAt,
+      });
+    }
+
+    return result.sort((a, b) => a.studentId.localeCompare(b.studentId));
+  } catch (err) {
+    console.error("getStudentsByClass failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};

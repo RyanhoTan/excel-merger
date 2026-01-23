@@ -3,6 +3,7 @@
 export interface Student {
   studentId: string;
   name: string;
+  className?: string;
   createdAt?: number;
   updatedAt?: number;
 }
