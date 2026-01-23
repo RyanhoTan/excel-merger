@@ -6,6 +6,7 @@ import { db } from "./index";
 import type { Student } from "../models/student";
 import type { ScoreRecord } from "../models/score";
 import type { MergeHistoryRecord } from "./index";
+import type { ClassMeta } from "./index";
 
 export interface StudentWithScores extends Student {
   scores: ScoreRecord[];
@@ -387,6 +388,8 @@ export interface StudentProfileWithStats {
   studentId: string;
   // 学生档案页：姓名。
   name: string;
+  // 学生档案页：性别（可选）。
+  gender?: string;
   // 学生档案页：班级名称。
   className: string;
   // 学生档案页：累计考试次数（按 term/category/subject 去重）。
@@ -433,17 +436,228 @@ const resolveStudentClassName = (
   return "未分班";
 };
 
+// 学生档案页：创建一个“空班级”（用于班级管理入口：创建新班级）。
+export const createClass = async (className: string): Promise<void> => {
+  const trimmed = className.trim();
+  if (!trimmed) throw new Error("班级名称不能为空");
+
+  try {
+    const now = Date.now();
+    const meta: ClassMeta = {
+      className: trimmed,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.classes.put(meta);
+  } catch (err) {
+    console.error("createClass failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+export interface ImportStudentsResult {
+  // 学生档案页：本次成功写入 students 表的记录数。
+  importedCount: number;
+  // 学生档案页：本次导入涉及的班级列表（用于 Toast 文案）。
+  affectedClasses: string[];
+  // 学生档案页：缺少班级字段、被归到“未分班”的记录数（用于静默提醒）。
+  missingClassCount: number;
+}
+
+// 学生档案页：Excel 批量导入（JSON 行数据 -> 清洗 -> 覆盖更新写入 students 表）。
+// - 覆盖更新：studentId 已存在则更新；不存在则新增。
+// - 静默校验：班级缺失归到“未分班”，不抛错。
+export const importStudentsFromExcel = async (
+  data: unknown[],
+): Promise<ImportStudentsResult> => {
+  const rows = Array.isArray(data) ? data : [];
+  if (rows.length === 0)
+    return { importedCount: 0, affectedClasses: [], missingClassCount: 0 };
+
+  // 学生档案页：支持常见表头字段名（中英混合），降低模板差异导致的解析失败率。
+  const pickFirst = (row: Record<string, unknown>, keys: string[]): string => {
+    for (const k of keys) {
+      const v = row[k];
+      if (v == null) continue;
+      const s = String(v).trim();
+      if (s !== "") return s;
+    }
+    return "";
+  };
+
+  const normalizeGender = (raw: string): string | undefined => {
+    const v = raw.trim();
+    if (!v) return undefined;
+    if (["男", "male", "m", "1"].includes(v.toLowerCase())) return "男";
+    if (["女", "female", "f", "0"].includes(v.toLowerCase())) return "女";
+    return v;
+  };
+
+  const now = Date.now();
+  const normalized: Student[] = [];
+  const classSet = new Set<string>();
+  let missingClassCount = 0;
+
+  for (const r of rows) {
+    if (!r || typeof r !== "object") continue;
+    const row = r as Record<string, unknown>;
+
+    const studentId = pickFirst(row, [
+      "studentId",
+      "学号",
+      "id",
+      "ID",
+      "学号/ID",
+    ]);
+    if (!studentId) continue;
+
+    const name = pickFirst(row, ["name", "姓名", "学生姓名"]) || "";
+    const className =
+      pickFirst(row, [
+        "className",
+        "class",
+        "Class",
+        "班级",
+        "班级名称",
+        "班级名",
+        "年级班级",
+      ]) || "未分班";
+    if (className === "未分班") missingClassCount += 1;
+
+    const genderRaw = pickFirst(row, ["gender", "性别"]);
+    const gender = normalizeGender(genderRaw);
+
+    normalized.push({
+      studentId,
+      name,
+      gender,
+      className,
+      createdAt: now,
+      updatedAt: now,
+    });
+    classSet.add(className);
+  }
+
+  if (normalized.length === 0)
+    return { importedCount: 0, affectedClasses: [], missingClassCount: 0 };
+
+  try {
+    await db.transaction("rw", db.students, db.classes, async () => {
+      // 学生档案页：为了保证“覆盖更新”不破坏审计信息，保留已有学生的 createdAt。
+      const ids = normalized.map((s) => s.studentId);
+      const existing =
+        ids.length === 0
+          ? []
+          : await db.students.where("studentId").anyOf(ids).toArray();
+      const createdAtById = new Map<string, number>();
+      for (const s of existing) {
+        if (typeof s.createdAt === "number")
+          createdAtById.set(s.studentId, s.createdAt);
+      }
+
+      const upsertRows = normalized.map((s) => ({
+        ...s,
+        createdAt: createdAtById.get(s.studentId) ?? s.createdAt,
+        updatedAt: now,
+      }));
+
+      // 学生档案页：bulkPut = upsert（覆盖更新）。
+      await db.students.bulkPut(upsertRows);
+
+      // 学生档案页：将导入涉及的班级写入 classes 表，保证班级列表一致性。
+      const metas: ClassMeta[] = Array.from(classSet).map((c) => ({
+        className: c,
+        createdAt: now,
+        updatedAt: now,
+      }));
+      if (metas.length > 0) await db.classes.bulkPut(metas);
+    });
+
+    return {
+      importedCount: normalized.length,
+      affectedClasses: Array.from(classSet).sort((a, b) => a.localeCompare(b)),
+      missingClassCount,
+    };
+  } catch (err) {
+    console.error("importStudentsFromExcel failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
+// 学生档案页：更新单个学生元数据（姓名/班级/性别等）。
+export const updateStudentInfo = async (
+  id: string,
+  updates: Partial<Student>,
+): Promise<void> => {
+  const studentId = id.trim();
+  if (!studentId) throw new Error("学号不能为空");
+
+  try {
+    const now = Date.now();
+    await db.transaction("rw", db.students, db.scores, db.classes, async () => {
+      const current = await db.students.get(studentId);
+      if (!current) throw new Error("学生不存在");
+
+      // 学生档案页：允许在编辑侧边栏中修改学号；若学号变化，需要迁移 scores.studentId。
+      const nextIdRaw =
+        typeof updates.studentId === "string" ? updates.studentId.trim() : "";
+      const nextId = nextIdRaw || current.studentId;
+      if (!nextId) throw new Error("学号不能为空");
+
+      if (nextId !== current.studentId) {
+        const exists = await db.students.get(nextId);
+        if (exists) throw new Error("目标学号已存在");
+      }
+
+      const next: Student = {
+        ...current,
+        ...updates,
+        studentId: nextId,
+        updatedAt: now,
+      };
+
+      if (nextId !== current.studentId) {
+        await db.students.delete(current.studentId);
+      }
+      await db.students.put(next);
+
+      if (nextId !== current.studentId) {
+        await db.scores
+          .where("studentId")
+          .equals(current.studentId)
+          .modify({ studentId: nextId } as Partial<ScoreRecord>);
+      }
+
+      const nextClass = next.className?.trim();
+      if (nextClass) {
+        await db.classes.put({
+          className: nextClass,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+    });
+  } catch (err) {
+    console.error("updateStudentInfo failed", err);
+    throw new Error(toUserFriendlyError(err));
+  }
+};
+
 // 学生档案页：该函数用于聚合班级数据（从 students 表提取不重复班级并统计人数/活跃/完整度）。
 export const getClassesSummary = async (): Promise<ClassSummary[]> => {
   try {
-    const students = await db.students.toArray();
-    if (students.length === 0) return [];
+    const [students, classMetas] = await Promise.all([
+      db.students.toArray(),
+      db.classes.toArray(),
+    ]);
+
+    if (students.length === 0 && classMetas.length === 0) return [];
 
     const studentIds = students.map((s) => s.studentId);
-    const scores = await db.scores
-      .where("studentId")
-      .anyOf(studentIds)
-      .toArray();
+    const scores =
+      studentIds.length === 0
+        ? []
+        : await db.scores.where("studentId").anyOf(studentIds).toArray();
 
     const scoresByStudentId = new Map<string, ScoreRecord[]>();
     for (const r of scores) {
@@ -456,6 +670,19 @@ export const getClassesSummary = async (): Promise<ClassSummary[]> => {
       string,
       { studentCount: number; lastActiveAt?: number; withScoreCount: number }
     >();
+
+    // 学生档案页：先把“空班级”写入聚合 Map，保证创建后也能显示在班级列表。
+    for (const meta of classMetas) {
+      const name = meta.className?.trim();
+      if (!name) continue;
+      if (!classAgg.has(name)) {
+        classAgg.set(name, {
+          studentCount: 0,
+          lastActiveAt: meta.updatedAt ?? meta.createdAt,
+          withScoreCount: 0,
+        });
+      }
+    }
 
     for (const s of students) {
       const studentScores = scoresByStudentId.get(s.studentId) ?? [];
@@ -568,6 +795,7 @@ export const getStudentsByClass = async (
       result.push({
         studentId: s.studentId,
         name: s.name,
+        gender: s.gender,
         className: resolvedClassName,
         examCount: examKeySet.size,
         scoreCount: studentScores.length,

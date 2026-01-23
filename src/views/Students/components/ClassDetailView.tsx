@@ -1,10 +1,11 @@
 // src/views/Students/components/ClassDetailView.tsx（学生档案页 / 班级详情视图）
 
 import type { FC } from "react";
-import { ChevronLeft, GraduationCap } from "lucide-react";
+import { ChevronLeft, GraduationCap, Pencil } from "lucide-react";
 
 import type { StudentProfileWithStats } from "../../../db/repository";
 
+import iconButtonStyles from "../../../components/ui/IconButton.module.css";
 import styles from "../Students.module.css";
 
 export interface ClassDetailViewProps {
@@ -16,6 +17,8 @@ export interface ClassDetailViewProps {
   loading: boolean;
   // 学生档案页：返回班级列表的回调。
   onBack: () => void;
+  // 学生档案页：点击“编辑”图标时的回调（用于打开 EditStudentDrawer）。
+  onEdit: (student: StudentProfileWithStats) => void;
 }
 
 const formatDateTime = (timestamp: number) => {
@@ -29,6 +32,7 @@ const ClassDetailView: FC<ClassDetailViewProps> = ({
   data,
   loading,
   onBack,
+  onEdit,
 }) => {
   return (
     <div className={styles.view}>
@@ -104,6 +108,16 @@ const ClassDetailView: FC<ClassDetailViewProps> = ({
                         }
                       >
                         详情
+                      </button>
+
+                      <button
+                        type="button"
+                        className={iconButtonStyles.iconButton}
+                        aria-label="编辑"
+                        title="编辑"
+                        onClick={() => onEdit(row)}
+                      >
+                        <Pencil size={16} strokeWidth={1.6} />
                       </button>
                     </td>
                   </tr>
